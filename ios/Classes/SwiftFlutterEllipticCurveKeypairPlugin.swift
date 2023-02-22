@@ -138,7 +138,7 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
             let key = try Shared.keypair.publicKey().data()
             let publicKey = key.DER.base64EncodedString();
             let result = ["success": true, "message": publicKey] as [String : Any]
-            return publicKey
+            return result
         } catch { 
             let result = ["success": false, "message": "Cannot get public key: \(error)"] as [String : Any]
             return result
