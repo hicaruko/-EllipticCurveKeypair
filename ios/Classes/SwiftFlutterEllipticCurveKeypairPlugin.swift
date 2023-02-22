@@ -84,7 +84,7 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
                 }else{
                     result(FlutterError.init(
                         code: "FAILED_TO_AUTHENTICATE",
-                        message: signature["message"] as? String,
+                        message: publicKey["message"] as? String,
                         details: nil
                     ))       
                 }
