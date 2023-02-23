@@ -14,6 +14,8 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
     */
     enum Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
+            print("EllipticCurveKeyPair aliasname")
+            print(alias)
             EllipticCurveKeyPair.logger = { print($0) }
             let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
             let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: {
@@ -52,6 +54,8 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
                     let arguments = call.arguments as? [String: Any]
                     if let messsage = arguments?["message"] as? String , let aliasname = arguments?["alias"] as? String  {
                         alias = aliasname
+                        print("aliasname")
+                        print(alias)
                         signature = Signing(dataToBeSigned: messsage) as [String: Any];
                         if((signature["success"] as? Bool)!){
                             result(signature["message"] as? String)
@@ -79,6 +83,10 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
                 }
                 
             case "ellipticCurveKeyPairPublicKey":
+            let arguments = call.arguments as? [String: Any]
+            if let aliasname = arguments?["alias"] as? String  {
+                alias = aliasname
+                
                 let publicKey = getPublicKey() as [String: Any]
                 if((publicKey["success"] as? Bool)!){
                     result(publicKey["message"] as? String)
@@ -89,7 +97,18 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
                         details: nil
                     ))
                 }
+           
+            } else {
+                result(FlutterError.init(
+                    code: "FAILED_TO_AUTHENTICATE",
+                    message: "Arguments should not be null",
+                    details: nil
+                ))
+            }
         case "ellipticCurveKeyPairPublicKeyPem":
+            let arguments = call.arguments as? [String: Any]
+            if let aliasname = arguments?["alias"] as? String  {
+                alias = aliasname
             let getPublicKeyPem = getPublicKeyPem() as [String: Any]
             if((getPublicKeyPem["success"] as? Bool)!){
                 result(getPublicKeyPem["message"] as? String)
@@ -100,7 +119,13 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
                     details: nil
                 ))
             }
-
+            } else {
+                result(FlutterError.init(
+                    code: "FAILED_TO_AUTHENTICATE",
+                    message: "Arguments should not be null",
+                    details: nil
+                ))
+            }
         default:
             result(FlutterError.init(
                 code: "METHOD_NOT_IMPLIMENTED",
