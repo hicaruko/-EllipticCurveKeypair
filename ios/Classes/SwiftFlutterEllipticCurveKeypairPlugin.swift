@@ -31,7 +31,7 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
         }()
     }
 
-    /** 
+    /**
     Flutter channel configuration
     */
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -40,18 +40,19 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
-    /** 
+    /**
     Handling flutter platform channel request
-    from [FlutterMethodCall] 
+    from [FlutterMethodCall]
     */
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let signature:[String: Any]
         switch call.method {
             case "ellipticCurveKeyPairSigning":
                 if(call.arguments as? [String: Any] != nil) {
                     let arguments = call.arguments as? [String: Any]
                     if let messsage = arguments?["message"] as? String , let aliasname = arguments?["alias"] as? String  {
                         alias = aliasname
-                        let signature = Signing(dataToBeSigned: messsage) as [String: Any];
+                        signature = Signing(dataToBeSigned: messsage) as [String: Any];
                         if((signature["success"] as? Bool)!){
                             result(signature["message"] as? String)
                         }else{
@@ -86,8 +87,19 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
                         code: "FAILED_TO_AUTHENTICATE",
                         message: publicKey["message"] as? String,
                         details: nil
-                    ))       
+                    ))
                 }
+        case "ellipticCurveKeyPairPublicKeyPem":
+            let getPublicKeyPem = getPublicKeyPem() as [String: Any]
+            if((getPublicKeyPem["success"] as? Bool)!){
+                result(getPublicKeyPem["message"] as? String)
+            }else{
+                result(FlutterError.init(
+                    code: "FAILED_TO_AUTHENTICATE",
+                    message: getPublicKeyPem["message"] as? String,
+                    details: nil
+                ))
+            }
 
         default:
             result(FlutterError.init(
@@ -100,13 +112,13 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
 
     /**
     EllipticCurveKeyPair Signing
-    @param should be the [messsage] to be signing using ECC algorithm 
-    @return signed message using [Keypair]  
+    @param should be the [messsage] to be signing using ECC algorithm
+    @return signed message using [Keypair]
     */
     public func Signing(dataToBeSigned: String) -> [String: Any] {
         if !checkPrivateKeyAvailable(){
             do {
-                try Shared.keypair.deleteKeyPair() 
+                try Shared.keypair.deleteKeyPair()
             }catch {
                 let result = ["success": false, "message": "Unexpected error: \(error)"] as [String : Any]
                 return result
@@ -117,6 +129,7 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
             if #available(iOS 10, *) {
                 let singedData = try Shared.keypair.sign(digest, hash: .sha256)
                 let signature = singedData.base64EncodedString()
+                
                 let result = ["success": true, "message": signature] as [String : Any]
                 return result
             } else {
@@ -135,11 +148,25 @@ public class SwiftFlutterEllipticCurveKeyPairPlugin: NSObject, FlutterPlugin {
     */
     private func getPublicKey() -> [String: Any] {
         do {
+             
             let key = try Shared.keypair.publicKey().data()
             let publicKey = key.DER.base64EncodedString();
             let result = ["success": true, "message": publicKey] as [String : Any]
             return result
-        } catch { 
+        } catch {
+            let result = ["success": false, "message": "Cannot get public key: \(error)"] as [String : Any]
+            return result
+        }
+    }
+    
+    private func getPublicKeyPem() -> [String: Any] {
+        do {
+             
+            let key = try Shared.keypair.publicKey().data()
+            let publicKey = key.PEM;
+            let result = ["success": true, "message": publicKey] as [String : Any]
+            return result
+        } catch {
             let result = ["success": false, "message": "Cannot get public key: \(error)"] as [String : Any]
             return result
         }
