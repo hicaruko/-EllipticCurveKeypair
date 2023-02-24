@@ -73,6 +73,23 @@ class FlutterEllipticCurveKeypairPlugin :
       }
       "ellipticCurveKeyPairPublicKey" -> {
         try {
+          if (call.argument<String>("alias") ==  null) {
+          channelResult.error("Could not authenticate", "Arguments should not be null", false)
+          }
+          KEYPAIR_ALIAS = call.argument("alias")!!
+          val publicKey: String? = getPublicKey()
+          channelResult.success(publicKey)
+        } catch (e: Exception) {
+          channelResult.error(
+              "UNEXPECTED_ERROR_OCCURED", "Could not generate public key ${e.toString()}", null)
+        }
+      }
+      "ellipticCurveKeyPairPublicKeyPem" -> {
+        try {
+          if (call.argument<String>("alias") ==  null) {
+          channelResult.error("Could not authenticate", "Arguments should not be null", false)
+          }
+          KEYPAIR_ALIAS = call.argument("alias")!!
           val publicKey: String? = getPublicKey()
           channelResult.success(publicKey)
         } catch (e: Exception) {
